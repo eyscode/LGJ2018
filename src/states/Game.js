@@ -93,10 +93,10 @@ export default class Stage extends Phaser.State {
         this.renderScene(game);//draw once the initial state
     }
 
-    getTileCoordinates(cartPt, tileHeight) {
+    getTileCoordinates(cartPt, tileWidth) {
         let tempPt = new Phaser.Point();
-        tempPt.x = Math.floor(cartPt.x / tileHeight);
-        tempPt.y = Math.floor(cartPt.y / tileHeight);
+        tempPt.x = Math.floor(cartPt.x / tileWidth);
+        tempPt.y = Math.floor(cartPt.y / tileWidth);
         return (tempPt);
     }
 
@@ -105,13 +105,9 @@ export default class Stage extends Phaser.State {
         this.sorcerer = game.add.sprite(-50, 0, 'hero', '1.png');// keep him out side screen area
 
         // animation
-        this.sorcerer.animations.add('southeast', ['1.png', '2.png', '3.png', '4.png'], 6, true);
         this.sorcerer.animations.add('south', ['5.png', '6.png', '7.png', '8.png'], 6, true);
-        this.sorcerer.animations.add('southwest', ['9.png', '10.png', '11.png', '12.png'], 6, true);
         this.sorcerer.animations.add('west', ['13.png', '14.png', '15.png', '16.png'], 6, true);
-        this.sorcerer.animations.add('northwest', ['17.png', '18.png', '19.png', '20.png'], 6, true);
         this.sorcerer.animations.add('north', ['21.png', '22.png', '23.png', '24.png'], 6, true);
-        this.sorcerer.animations.add('northeast', ['25.png', '26.png', '27.png', '28.png'], 6, true);
         this.sorcerer.animations.add('east', ['29.png', '30.png', '31.png', '32.png'], 6, true);
     }
 
@@ -154,6 +150,12 @@ export default class Stage extends Phaser.State {
         return (tempPt);
     }
 
+    moveHero(game) {
+        switch (this.facing) {
+        }
+        game.add.tween(this.sorcerer.scale).to({x: 1.0, y: 1.0}, 2400, Phaser.Easing.Bounce.Out, true);
+    }
+
     update(game) {
         this.detectKeyInput();
         //if no key is pressed then stop else play walking animation
@@ -176,53 +178,29 @@ export default class Stage extends Phaser.State {
             //depthsort & draw new scene
             this.renderScene(game);
         }
+        console.log(this.facing)
     }
 
     detectKeyInput() {//assign direction for character & set x,y speed components
         if (this.upKey.isDown) {
             this.dY = -1;
+            this.dX = 0;
+            this.facing ='north';
         } else if (this.downKey.isDown) {
+            this.dX = 0;
             this.dY = 1;
-        } else {
-            this.dY = 0;
-        }
-        if (this.rightKey.isDown) {
+            this.facing = 'south';
+        } else if (this.rightKey.isDown) {
             this.dX = 1;
-            if (this.dY === 0) {
-                this.facing = "east";
-            }
-            else if (this.dY === 1) {
-                this.facing = "southeast";
-                this.dX = this.dY = 0.5;
-            }
-            else {
-                this.facing = "northeast";
-                this.dX = 0.5;
-                this.dY = -0.5;
-            }
+            this.dY = 0;
+            this.facing = "east";
         } else if (this.leftKey.isDown) {
             this.dX = -1;
-            if (this.dY === 0) {
-                this.facing = "west";
-            }
-            else if (this.dY === 1) {
-                this.facing = "southwest";
-                this.dY = 0.5;
-                this.dX = -0.5;
-            }
-            else {
-                this.facing = "northwest";
-                this.dX = this.dY = -0.5;
-            }
+            this.dY = 0;
+            this.facing = "west";
         } else {
             this.dX = 0;
-            if (this.dY === 0) {
-                //facing="west";
-            } else if (this.dY == 1) {
-                this.facing = "south";
-            } else {
-                this.facing = "north";
-            }
+            this.dY = 0;
         }
     }
 
@@ -263,26 +241,6 @@ export default class Stage extends Phaser.State {
             case "west":
                 newTileCorner1 = cornerTL;
                 newTileCorner2 = cornerBL;
-                break;
-            case "northeast":
-                newTileCorner1 = cornerTR;
-                newTileCorner2 = cornerBR;
-                newTileCorner3 = cornerTL;
-                break;
-            case "southeast":
-                newTileCorner1 = cornerTR;
-                newTileCorner2 = cornerBR;
-                newTileCorner3 = cornerBL;
-                break;
-            case "northwest":
-                newTileCorner1 = cornerTR;
-                newTileCorner2 = cornerBL;
-                newTileCorner3 = cornerTL;
-                break;
-            case "southwest":
-                newTileCorner1 = cornerTL;
-                newTileCorner2 = cornerBR;
-                newTileCorner3 = cornerBL;
                 break;
         }
         //check if those corners fall inside a wall after moving
