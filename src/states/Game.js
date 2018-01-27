@@ -14,20 +14,6 @@ export default class Stage extends Phaser.State {
                 [1, 2, 2, 0, 0, 0, 0],
                 [1, 1, 0, 0, 1, 1, 1],
             ];
-    }
-
-    preload(game) {
-        game.load.crossOrigin = 'Anonymous';
-        game.load.atlasJSONHash('tileset', 'assets/images/tileset.png', 'assets/tileset.json');
-        game.load.bitmapFont('font', 'https://dl.dropboxusercontent.com/s/z4riz6hymsiimam/font.png?dl=0', 'https://dl.dropboxusercontent.com/s/7caqsovjw5xelp0/font.xml?dl=0');
-        game.load.image('greenTile', 'https://dl.dropboxusercontent.com/s/nxs4ptbuhrgzptx/green_tile.png?dl=0');
-        game.load.image('redTile', 'https://dl.dropboxusercontent.com/s/zhk68fq5z0c70db/red_tile.png?dl=0');
-        game.load.image('heroTile', 'https://dl.dropboxusercontent.com/s/8b5zkz9nhhx3a2i/hero_tile.png?dl=0');
-        game.load.image('heroShadow', 'https://dl.dropboxusercontent.com/s/sq6deec9ddm2635/ball_shadow.png?dl=0');
-        game.load.atlasJSONArray('hero', 'https://dl.dropboxusercontent.com/s/hradzhl7mok1q25/hero_8_4_41_62.png?dl=0', 'https://dl.dropboxusercontent.com/s/95vb0e8zscc4k54/hero_8_4_41_62.json?dl=0');
-    }
-
-    create(game) {
         this.dX = 0;
         this.dY = 0;
         this.tileWidth = 34;// the width of a tile
@@ -42,6 +28,20 @@ export default class Stage extends Phaser.State {
         this.shadowOffset = new Phaser.Point(this.heroWidth + 7, 11);
         this.heroSpeed = 1.2;
 
+    }
+
+    preload(game) {
+        game.load.crossOrigin = 'Anonymous';
+        game.load.atlasJSONHash('tileset', 'assets/images/tileset.png', 'assets/tileset.json');
+        game.load.bitmapFont('font', 'https://dl.dropboxusercontent.com/s/z4riz6hymsiimam/font.png?dl=0', 'https://dl.dropboxusercontent.com/s/7caqsovjw5xelp0/font.xml?dl=0');
+        game.load.image('greenTile', 'https://dl.dropboxusercontent.com/s/nxs4ptbuhrgzptx/green_tile.png?dl=0');
+        game.load.image('redTile', 'https://dl.dropboxusercontent.com/s/zhk68fq5z0c70db/red_tile.png?dl=0');
+        game.load.image('heroTile', 'https://dl.dropboxusercontent.com/s/8b5zkz9nhhx3a2i/hero_tile.png?dl=0');
+        game.load.image('heroShadow', 'https://dl.dropboxusercontent.com/s/sq6deec9ddm2635/ball_shadow.png?dl=0');
+        game.load.atlasJSONArray('hero', 'https://dl.dropboxusercontent.com/s/hradzhl7mok1q25/hero_8_4_41_62.png?dl=0', 'https://dl.dropboxusercontent.com/s/95vb0e8zscc4k54/hero_8_4_41_62.json?dl=0');
+    }
+
+    create(game) {
         this.normText = game.add.text(10, 360, "hi");
         this.upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
         this.downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
