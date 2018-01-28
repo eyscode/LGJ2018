@@ -1,5 +1,7 @@
 /* globals __DEV__ */
 import Phaser from 'phaser'
+import {cartesianToIsometric} from '../utils';
+import Player from '../objects/Player';
 
 export default class Stage extends Phaser.State {
     init(game) {
@@ -22,10 +24,7 @@ export default class Stage extends Phaser.State {
         this.floorGraphicHeight = 38;
         this.heroGraphicWidth = 41;
         this.heroGraphicHeight = 62;
-        this.heroHeight = (this.floorGraphicHeight / 2) + (this.heroGraphicHeight - this.floorGraphicHeight);//adjustments to make the legs hit the middle of the tile for initial load
-        this.heroWidth = (this.floorGraphicWidth / 2) - (this.heroGraphicWidth / 2);//for placing hero at the middle of the tile
         this.facing = 'south';//direction the character faces
-        this.shadowOffset = new Phaser.Point(this.heroWidth + 7, 11);
         this.heroSpeed = 1.2;
 
     }
@@ -55,9 +54,6 @@ export default class Stage extends Phaser.State {
         this.waterSprite = game.make.sprite(0, 0, 'tileset', 'water');
         this.waterSprite.alpha = 0.5;
         game.add.tween(this.waterSprite).to({alpha: 1}, 1500, Phaser.Easing.Linear.None, true, 0, 1000, true);
-        this.sorcererShadow = game.make.sprite(0, 0, 'heroShadow');
-        this.sorcererShadow.scale = new Phaser.Point(0.5, 0.6);
-        this.sorcererShadow.alpha = 0.4;
         this.createLevel(game);
     }
 
@@ -81,12 +77,18 @@ export default class Stage extends Phaser.State {
                 }
             }
         }
-        this.addHero(game);
+
         this.heroMapSprite = this.minimap.create(this.heroMapTile.y * this.tileWidth, this.heroMapTile.x * this.tileWidth, 'heroTile');
         this.heroMapSprite.x += (this.tileWidth / 2) - (this.heroMapSprite.width / 2);
         this.heroMapSprite.y += (this.tileWidth / 2) - (this.heroMapSprite.height / 2);
         this.heroMapPos = new Phaser.Point(this.heroMapSprite.x + this.heroMapSprite.width / 2, this.heroMapSprite.y + this.heroMapSprite.height / 2);
         this.heroMapTile = this.getTileCoordinates(this.heroMapPos, this.tileWidth);
+
+        const heroWidth = (this.floorGraphicWidth / 2) - (this.heroGraphicWidth / 2);
+        const heroHeight = (this.floorGraphicHeight / 2) + (this.heroGraphicHeight - this.floorGraphicHeight);
+
+        this.player = new Player(game, heroWidth, heroHeight, this.heroMapPos, this.heroMapSprite);
+
         this.minimap.scale = new Phaser.Point(0.3, 0.3);
         this.minimap.x = 500;
         this.minimap.y = 10;
@@ -100,17 +102,6 @@ export default class Stage extends Phaser.State {
         return (tempPt);
     }
 
-    addHero(game) {
-        // sprite
-        this.sorcerer = game.add.sprite(-50, 0, 'hero', '1.png');// keep him out side screen area
-
-        // animation
-        this.sorcerer.animations.add('south', ['5.png', '6.png', '7.png', '8.png'], 6, true);
-        this.sorcerer.animations.add('west', ['13.png', '14.png', '15.png', '16.png'], 6, true);
-        this.sorcerer.animations.add('north', ['21.png', '22.png', '23.png', '24.png'], 6, true);
-        this.sorcerer.animations.add('east', ['29.png', '30.png', '31.png', '32.png'], 6, true);
-    }
-
     renderScene(game) {
         this.gameScene.clear();//clear the previous frame then draw again
         let tileType = 0;
@@ -119,7 +110,7 @@ export default class Stage extends Phaser.State {
                 tileType = this.levelData[i][j];
                 this.drawTileIso(game, tileType, i, j);
                 if (i === this.heroMapTile.y && j === this.heroMapTile.x) {
-                    this.drawHeroIso();
+                    this.player.draw(this.gameScene, this.borderOffset);
                 }
             }
         }
@@ -130,7 +121,7 @@ export default class Stage extends Phaser.State {
         let cartPt = new Phaser.Point();//This is here for better code readability.
         cartPt.x = j * this.tileWidth;
         cartPt.y = i * this.tileWidth;
-        let isoPt = this.cartesianToIsometric(cartPt);
+        let isoPt = cartesianToIsometric(cartPt);
         if (tileType === 1) {
             this.gameScene.renderXY(this.wallSprite, isoPt.x + this.borderOffset.x, isoPt.y + this.borderOffset.y - 14, false);
         } else if (tileType === 0) {
@@ -143,28 +134,15 @@ export default class Stage extends Phaser.State {
         }
     }
 
-    cartesianToIsometric(cartPt) {
-        let tempPt = new Phaser.Point();
-        tempPt.x = cartPt.x - cartPt.y;
-        tempPt.y = (cartPt.x + cartPt.y) / 2;
-        return (tempPt);
-    }
-
-    moveHero(game) {
-        switch (this.facing) {
-        }
-        game.add.tween(this.sorcerer.scale).to({x: 1.0, y: 1.0}, 2400, Phaser.Easing.Bounce.Out, true);
-    }
-
     update(game) {
         this.detectKeyInput();
         //if no key is pressed then stop else play walking animation
         if (this.dY === 0 && this.dX === 0) {
-            this.sorcerer.animations.stop();
-            this.sorcerer.animations.currentAnim.frame = 0;
+            this.player.stopAnimation();
+            this.player.currentFrame = 0;
         } else {
-            if (this.sorcerer.animations.currentAnim !== this.facing) {
-                this.sorcerer.animations.play(this.facing);
+            if (this.player.currentAnim !== this.facing) {
+                this.player.playAnimation(this.facing);
             }
         }
         //check if we are walking into a wall else move hero in 2D
@@ -178,14 +156,13 @@ export default class Stage extends Phaser.State {
             //depthsort & draw new scene
             this.renderScene(game);
         }
-        console.log(this.facing)
     }
 
     detectKeyInput() {//assign direction for character & set x,y speed components
         if (this.upKey.isDown) {
             this.dY = -1;
             this.dX = 0;
-            this.facing ='north';
+            this.facing = 'north';
         } else if (this.downKey.isDown) {
             this.dX = 0;
             this.dY = 1;
@@ -257,12 +234,5 @@ export default class Stage extends Phaser.State {
             able = false;
         }
         return able;
-    }
-
-    drawHeroIso() {
-        let heroCornerPt = new Phaser.Point(this.heroMapPos.x - this.heroMapSprite.width / 2, this.heroMapPos.y - this.heroMapSprite.height / 2);
-        let isoPt = this.cartesianToIsometric(heroCornerPt);//find new isometric position for hero from 2D map position
-        this.gameScene.renderXY(this.sorcererShadow, isoPt.x + this.borderOffset.x + this.shadowOffset.x, isoPt.y + this.borderOffset.y + this.shadowOffset.y - 10, false);//draw shadow to render texture
-        this.gameScene.renderXY(this.sorcerer, isoPt.x + this.borderOffset.x + this.heroWidth, isoPt.y + this.borderOffset.y - this.heroHeight, false);//draw hero to render texture
     }
 }
