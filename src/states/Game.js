@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import {cartesianToIsometric} from '../utils';
 import Player from '../objects/Player';
+import InputBar from '../objects/InputBar';
 
 export default class Stage extends Phaser.State {
     init(game) {
@@ -38,10 +39,10 @@ export default class Stage extends Phaser.State {
         game.load.image('heroTile', 'https://dl.dropboxusercontent.com/s/8b5zkz9nhhx3a2i/hero_tile.png?dl=0');
         game.load.image('heroShadow', 'https://dl.dropboxusercontent.com/s/sq6deec9ddm2635/ball_shadow.png?dl=0');
         game.load.atlasJSONArray('hero', 'https://dl.dropboxusercontent.com/s/hradzhl7mok1q25/hero_8_4_41_62.png?dl=0', 'https://dl.dropboxusercontent.com/s/95vb0e8zscc4k54/hero_8_4_41_62.json?dl=0');
+        game.load.spritesheet('playButton', 'assets/images/button_play_sprite.png', 92, 100);
     }
 
     create(game) {
-        this.normText = game.add.text(10, 360, "hi");
         this.upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
         this.downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
         this.leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
@@ -88,6 +89,9 @@ export default class Stage extends Phaser.State {
         const heroHeight = (this.floorGraphicHeight / 2) + (this.heroGraphicHeight - this.floorGraphicHeight);
 
         this.player = new Player(game, heroWidth, heroHeight, this.heroMapPos, this.heroMapSprite);
+        this.inputBar = new InputBar(game, 330, () => {
+            console.log("Clicked!")
+        }, ["step", "step", "clockwise-rotation"]);
 
         this.minimap.scale = new Phaser.Point(0.3, 0.3);
         this.minimap.x = 500;
@@ -114,7 +118,6 @@ export default class Stage extends Phaser.State {
                 }
             }
         }
-        this.normText.text = 'Player is on x,y: ' + this.heroMapTile.x + ',' + this.heroMapTile.y;
     }
 
     drawTileIso(game, tileType, i, j) {//place isometric level tiles
